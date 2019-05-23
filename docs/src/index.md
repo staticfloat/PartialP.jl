@@ -1,25 +1,25 @@
-# Zygote
+# PartialP
 
-Welcome! Zygote extends the Julia language to support [differentiable programming](https://fluxml.ai/2019/02/07/what-is-differentiable-programming.html). With Zygote you can write down any Julia code you feel like – including using existing Julia packages – then get gradients and optimise your program. Deep learning, ML and probabilistic programming are all different kinds of differentiable programming that you can do with Zygote.
+Welcome! PartialP extends the Julia language to support [differentiable programming](https://fluxml.ai/2019/02/07/what-is-differentiable-programming.html). With PartialP you can write down any Julia code you feel like – including using existing Julia packages – then get gradients and optimise your program. Deep learning, ML and probabilistic programming are all different kinds of differentiable programming that you can do with PartialP.
 
 At least, that's the idea. We're still in beta so expect some adventures.
 
 ## Setup
 
-Zygote is still moving quickly and it's best to work from the development branches. Run this in a Julia session:
+PartialP is still moving quickly and it's best to work from the development branches. Run this in a Julia session:
 
 ```julia
-using Pkg; pkg"add Zygote#master"
+using Pkg; pkg"add PartialP#master"
 ```
 
 ## Taking Gradients
 
-Zygote is easy to understand since, at its core, it has a one-function API (`forward`), along with a few simple conveniences. Before explaining `forward`, we'll look at the higher-level function `gradient`.
+PartialP is easy to understand since, at its core, it has a one-function API (`forward`), along with a few simple conveniences. Before explaining `forward`, we'll look at the higher-level function `gradient`.
 
 `gradient` calculates derivatives. For example, the derivative of ``3x^2 + 2x + 1`` is ``6x + 2``, so when `x = 5`, `dx = 32`.
 
 ```julia
-julia> using Zygote
+julia> using PartialP
 
 julia> gradient(x -> 3x^2 + 2x + 1, 5)
 (32,)
@@ -68,7 +68,7 @@ julia> gradient(x -> pow2(x, 3), 5)
 (75,)
 ```
 
-Data structures are also supported, including mutable ones like dictionaries. Arrays are currently immutable, though [this may change](https://github.com/FluxML/Zygote.jl/pull/75) in future.
+Data structures are also supported, including mutable ones like dictionaries. Arrays are currently immutable, though [this may change](https://github.com/staticfloat/PartialP.jl/pull/75) in future.
 
 ```julia
 julia> d = Dict()
@@ -86,7 +86,7 @@ julia> d[:x]
 
 ## Structs and Types
 
-Julia makes it easy to work with custom types, and Zygote makes it easy to differentiate them. For example, given a simple `Point` type:
+Julia makes it easy to work with custom types, and PartialP makes it easy to differentiate them. For example, given a simple `Point` type:
 
 ```julia
 import Base: +, -
@@ -115,7 +115,7 @@ julia> gradient(a -> dist(a + b), a)[1]
 (x = 0.5547001962252291, y = 0.8320502943378437)
 ```
 
-Zygote's default representation of the "point adjoint" is a named tuple with gradients for both fields, but this can of course be customised too.
+PartialP's default representation of the "point adjoint" is a named tuple with gradients for both fields, but this can of course be customised too.
 
 This means we can do something very powerful: differentiating through Julia libraries, even if they weren't designed for this. For example, `colordiff` might be a smarter loss function on colours than simple mean-squared-error:
 
@@ -170,7 +170,7 @@ julia> dmodel = gradient(model -> sum(model(x)), model)[1]
 (W = [0.652543 … 0.683588], b = [1.0, 1.0])
 ```
 
-Zygote also support one more way to take gradients, via *implicit parameters* – this is a lot like autograd-style gradients, except we don't have to thread the parameter collection through all our code.
+PartialP also support one more way to take gradients, via *implicit parameters* – this is a lot like autograd-style gradients, except we don't have to thread the parameter collection through all our code.
 
 ```julia
 julia> W = rand(2, 5); b = rand(2);

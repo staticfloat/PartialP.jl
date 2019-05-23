@@ -223,7 +223,7 @@ end
 
 # This is basically a hack while we don't have a working `ldiv!`.
 @adjoint function \(A::Cholesky, B::AbstractVecOrMat)
-  Y, back = Zygote.forward((U, B)->U \ (U' \ B), A.U, B)
+  Y, back = PartialP.forward((U, B)->U \ (U' \ B), A.U, B)
   return Y, function(Ȳ)
     Ā_factors, B̄ = back(Ȳ)
     return ((uplo=nothing, status=nothing, factors=Ā_factors), B̄)
@@ -295,7 +295,7 @@ end
   (Ā, )
 end
 
-Zygote.@adjoint function LinearAlgebra.tr(x::AbstractMatrix)
+PartialP.@adjoint function LinearAlgebra.tr(x::AbstractMatrix)
   # x is a squre matrix checked by tr,
   # so we could just use Eye(size(x, 1))
   # to create a Diagonal

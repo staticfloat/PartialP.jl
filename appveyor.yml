@@ -41,7 +41,7 @@ build_script:
 # Need to convert from shallow to complete for Pkg.clone to work
   - IF EXIST .git\shallow (git fetch --unshallow)
   - C:\projects\julia\bin\julia -e "versioninfo();
-      Pkg.clone(pwd(), \"Zygote\"); Pkg.build(\"Zygote\")"
+      Pkg.clone(pwd(), \"PartialP\"); Pkg.build(\"PartialP\")"
 
 test_script:
-  - C:\projects\julia\bin\julia -e "Pkg.test(\"Zygote\")"
+  - C:\projects\julia\bin\julia -e "Pkg.test(\"PartialP\")"

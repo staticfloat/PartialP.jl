@@ -4,10 +4,10 @@ import Pkg
 Pkg.activate(@__DIR__)
 Pkg.instantiate()
 
-@info("Loading Zygote...")
-using Zygote, LinearAlgebra
+@info("Loading PartialP...")
+using PartialP, LinearAlgebra
 
-# This example will showcase how we do a simple linear fit with Zygote, making
+# This example will showcase how we do a simple linear fit with PartialP, making
 # use of complex datastructures, a home-grown stochastic gradient descent
 # optimizer, and some good old-fashioned math.  We start with the problem
 # statement:  We wish to learn the mapping `f(X) -> Y`, where `X` is a matrix
@@ -54,13 +54,13 @@ X .+= 0.001.*randn(size(X))
 # Now we begin our "training loop", where we take examples from `X`,
 # calculate loss with respect to the corresponding entry in `Y`, find the
 # gradient upon our model, update the model, and continue.  Before we jump
-# in, let's look at what `Zygote.gradient()` gives us:
+# in, let's look at what `PartialP.gradient()` gives us:
 @info("Building model...")
 model = LinearRegression(size(X, 1), "Example")
 
 # Calculate gradient upon `model` for the first example in our training set
 @info("Calculating gradient (the first time can take a while to compile...)")
-grads = Zygote.gradient(model) do m
+grads = PartialP.gradient(model) do m
     return loss(m, X[:,1], Y[1])
 end
 
@@ -88,7 +88,7 @@ end
 # Now let's do that for each example in our training set:
 @info("Running train loop for $(size(X,2)) iterations")
 for idx in 1:size(X, 2)
-    grads = Zygote.gradient(m -> loss(m, X[:, idx], Y[idx]), model)[1][]
+    grads = PartialP.gradient(m -> loss(m, X[:, idx], Y[idx]), model)[1][]
     sgd_update!(model, grads)
 end
 

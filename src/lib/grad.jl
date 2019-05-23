@@ -37,16 +37,16 @@ function gradm(ex, mut = false)
   fargs = kw == nothing ? [cx, :($f::$T), args...] : [kw, cx, :($f::$T), args...]
   gradtuple   = isclosure ? gradtuple0 : gradtuple1
   gradtuplekw = isclosure ? gradtuple2 : gradtuple3
-  adj = @q @inline Zygote.adjoint($(fargs...)) where $(Ts...) = $(esc(body))
+  adj = @q @inline PartialP.adjoint($(fargs...)) where $(Ts...) = $(esc(body))
   quote
     $adj
-    @inline function Zygote._forward($cx, $f::$T, $(args...)) where $(Ts...)
+    @inline function PartialP._forward($cx, $f::$T, $(args...)) where $(Ts...)
       y, _back = adjoint(__context__, $f, $(argnames...))
       $(mut ? nothing : :(back(::Nothing) = nothing))
       back(Δ) = $gradtuple(_back(Δ))
       return y, back
     end
-    @inline function Zygote._forward($cx, ::$kT, kw, $f::$T, $(args...)) where $(Ts...)
+    @inline function PartialP._forward($cx, ::$kT, kw, $f::$T, $(args...)) where $(Ts...)
       y, _back = adjoint(__context__, $f, $(argnames...); kw...)
       $(mut ? nothing : :(back(::Nothing) = nothing))
       back(Δ) = $gradtuplekw(_back(Δ))
@@ -69,12 +69,12 @@ macro nograd(ex)
   blk = :(;)
   for f in ex.args
     back = MacroTools.@q _ -> ($__source__; nothing)
-    push!(blk.args, :(@inline Zygote._forward(::Context, ::Core.Typeof($(esc(f))), args...) = $(esc(f))(args...), $back))
+    push!(blk.args, :(@inline PartialP._forward(::Context, ::Core.Typeof($(esc(f))), args...) = $(esc(f))(args...), $back))
   end
   return blk
 end
 
 macro which(ex)
-  @capture(ex, f_(args__)) || error("Zygote.@which f(args...)")
+  @capture(ex, f_(args__)) || error("PartialP.@which f(args...)")
   :(InteractiveUtils.@which adjoint(Context(), $(esc(f)), $(esc.(args)...)))
 end

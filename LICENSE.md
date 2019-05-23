@@ -1,4 +1,4 @@
-The Zygote.jl package is licensed under the MIT "Expat" License:
+The PartialP.jl package is licensed under the MIT "Expat" License:
 
 > Copyright (c) 2018-19: Julia Computing, Inc., Mike J Innes and contributors
 >

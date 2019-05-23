@@ -1,5 +1,5 @@
-using Zygote, Test
-using Zygote: Params, gradient, forwarddiff
+using PartialP, Test
+using PartialP: Params, gradient, forwarddiff
 
 add(a, b) = a+b
 _relu(x) = x > 0 ? x : 0
@@ -137,7 +137,7 @@ end == (4,)
 
 pow_rec(x, n) = n == 0 ? 1 : x*pow_rec(x, n-1)
 
-if !Zygote.usetyped
+if !PartialP.usetyped
   @test gradient(pow_rec, 2, 3) == (12, nothing)
 end
 
@@ -185,7 +185,7 @@ y, back = forward(() -> layer(x), Params([W]))
 end[1] == 1
 
 # FIXME
-if !Zygote.usetyped
+if !PartialP.usetyped
   @test gradient(2) do x
     if x < 0
       throw("foo")
@@ -209,19 +209,19 @@ end[1] == 2
 # Gradient of closure
 grad_closure(x) = 2x
 
-Zygote.@adjoint (f::typeof(grad_closure))(x) = f(x), Δ -> (1, 2)
+PartialP.@adjoint (f::typeof(grad_closure))(x) = f(x), Δ -> (1, 2)
 
-Zygote.usetyped && Zygote.refresh()
+PartialP.usetyped && PartialP.refresh()
 
 @test gradient((f, x) -> f(x), grad_closure, 5) == (1, 2)
 
-if !Zygote.usetyped
+if !PartialP.usetyped
   invokable(x) = 2x
   invokable(x::Integer) = 3x
   @test gradient(x -> invoke(invokable, Tuple{Any}, x), 5) == (2,)
 end
 
-y, back = Zygote.forward(x->tuple(x...), [1, 2, 3])
+y, back = PartialP.forward(x->tuple(x...), [1, 2, 3])
 @test back((1, 1, 1)) == ((1,1,1),)
 
 # Test for some compiler errors on complex CFGs
@@ -232,23 +232,23 @@ function f(x)
   end
 end
 
-@test Zygote.@code_adjoint(f(1)) isa Zygote.Adjoint
+@test PartialP.@code_adjoint(f(1)) isa PartialP.Adjoint
 
-@test_throws ErrorException Zygote.gradient(1) do x
+@test_throws ErrorException PartialP.gradient(1) do x
   push!([], x)
   return x
 end
 
 @test gradient(1) do x
   stk = []
-  Zygote._push!(stk, x)
-  stk = Zygote.Stack(stk)
+  PartialP._push!(stk, x)
+  stk = PartialP.Stack(stk)
   pop!(stk)
 end == (1,)
 
 @test gradient(x -> [x][1].a, Foo(1, 1)) == ((a=1, b=nothing),)
 
-@test gradient((a, b) -> Zygote.hook(-, a)*b, 2, 3) == (-3, 2)
+@test gradient((a, b) -> PartialP.hook(-, a)*b, 2, 3) == (-3, 2)
 
 @test gradient(5) do x
   forwarddiff(x -> x^2, x)
@@ -265,11 +265,11 @@ end == (2,)
 global_param = 3
 
 @testset "Global Params" begin
-  cx = Zygote.Context()
-  y, back = Zygote._forward(cx, x -> x*global_param, 2)
+  cx = PartialP.Context()
+  y, back = PartialP._forward(cx, x -> x*global_param, 2)
   @test y == 6
   @test back(1) == (nothing, 3)
-  Zygote.globals(cx)[GlobalRef(Main, :global_param)] == 2
+  PartialP.globals(cx)[GlobalRef(Main, :global_param)] == 2
 end
 
 function pow_try(x)

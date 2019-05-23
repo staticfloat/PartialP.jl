@@ -13,13 +13,13 @@ iscall(x, m::Module, n::Symbol) = isexpr(x, :call) && x.args[1] == GlobalRef(m, 
 gradindex(x, i) = x[i]
 gradindex(::Nothing, i) = nothing
 xgetindex(x, i...) = xcall(Base, :getindex, x, i...)
-xgradindex(x, i) = xcall(Zygote, :gradindex, x, i)
+xgradindex(x, i) = xcall(PartialP, :gradindex, x, i)
 
 normalise!(ir) = ir |> IRTools.merge_returns!
 
 function instrument_new!(ir, v, ex)
-  isexpr(ex, :new) ? (ir[v] = xcall(Zygote, :__new__, ex.args...)) :
-  isexpr(ex, :splatnew) ? (ir[v] = xcall(Zygote, :__splatnew__, ex.args...)) :
+  isexpr(ex, :new) ? (ir[v] = xcall(PartialP, :__new__, ex.args...)) :
+  isexpr(ex, :splatnew) ? (ir[v] = xcall(PartialP, :__splatnew__, ex.args...)) :
   ex
 end
 
@@ -30,7 +30,7 @@ is_literal_getproperty(ex) =
 
 function instrument_getproperty!(ir, v, ex)
   is_literal_getproperty(ex) ?
-    (ir[v] = xcall(Zygote, :literal_getproperty, ex.args[2], Val(ex.args[3].value))) :
+    (ir[v] = xcall(PartialP, :literal_getproperty, ex.args[2], Val(ex.args[3].value))) :
     ex
 end
 
@@ -43,11 +43,11 @@ end
 
 function instrument_global!(ir, v, ex)
   if istrackable(ex)
-    ir[v] = xcall(Zygote, :unwrap, QuoteNode(ex), ex)
+    ir[v] = xcall(PartialP, :unwrap, QuoteNode(ex), ex)
   else
     ir[v] = prewalk(ex) do x
       istrackable(x) || return x
-      insert!(ir, v, stmt(xcall(Zygote, :unwrap, QuoteNode(x), x), type = exprtype(x)))
+      insert!(ir, v, stmt(xcall(PartialP, :unwrap, QuoteNode(x), x), type = exprtype(x)))
     end
   end
 end
@@ -118,7 +118,7 @@ function primal(ir::IR)
       yT = exprtype(ir, v)
       T = _forward_type(exprtype.((ir,), ex.args))
       if yT == Any || isvalidtype(T, yT)
-        yJ = insert!(pr, v, stmt(xcall(Zygote, :_forward, cx, ex.args...),
+        yJ = insert!(pr, v, stmt(xcall(PartialP, :_forward, cx, ex.args...),
                                  line = ir[v].line))
         pr[v] = xgetindex(yJ, 1)
         J = insertafter!(pr, v, stmt(xgetindex(yJ, 2),
@@ -126,10 +126,10 @@ function primal(ir::IR)
                                      line = ir[v].line))
         pbs[v] = substitute(pr, J)
       else
-        yJ = insert!(pr, v, xcall(Zygote, :_forward, cx, ex.args...))
+        yJ = insert!(pr, v, xcall(PartialP, :_forward, cx, ex.args...))
         y =  insert!(pr, v, xgetindex(yJ, 1))
         J =  insert!(pr, v, stmt(xgetindex(yJ, 2), line = ir[v].line))
-        pr[v] = xcall(Zygote, :typeassert, y, yT)
+        pr[v] = xcall(PartialP, :typeassert, y, yT)
         pbs[v] = substitute(pr, J)
       end
     end
@@ -198,7 +198,7 @@ branchfor(ir, (from,to)) =
 
 xaccum(ir) = nothing
 xaccum(ir, x) = x
-xaccum(ir, xs...) = push!(ir, xcall(Zygote, :accum, xs...))
+xaccum(ir, xs...) = push!(ir, xcall(PartialP, :accum, xs...))
 
 function adjoint(pr::Primal)
   ir, sigs = adjointcfg(pr)
@@ -247,8 +247,8 @@ function adjoint(pr::Primal)
     else # Backprop function arguments
       gs = [grad(arg) for arg = arguments(pr.ir)]
       Δ = push!(rb, pr.varargs == nothing ?
-                      xcall(Zygote, :tuple, gs...) :
-                      xcall(Zygote, :tuple_va, Val(pr.varargs), gs...))
+                      xcall(PartialP, :tuple, gs...) :
+                      xcall(PartialP, :tuple_va, Val(pr.varargs), gs...))
       branches(rb)[1].args[1] = Δ
     end
   end

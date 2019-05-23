@@ -4,10 +4,10 @@ Pkg.activate(); Pkg.instantiate()
 
 pushfirst!(LOAD_PATH, joinpath(@__DIR__, ".."))
 
-using Documenter, Zygote
+using Documenter, PartialP
 
 makedocs(
-  sitename="Zygote",
+  sitename="PartialP",
   analytics = "UA-36890222-9",
   pages = [
         "Home" => "index.md",
@@ -21,5 +21,5 @@ makedocs(
   format = Documenter.HTML(prettyurls = haskey(ENV, "CI")))
 
 deploydocs(
-    repo = "github.com/FluxML/Zygote.jl.git",
+    repo = "github.com/staticfloat/PartialP.jl.git",
 )

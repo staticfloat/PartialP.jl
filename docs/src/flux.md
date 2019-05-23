@@ -1,9 +1,9 @@
 # Flux
 
-It's easy to use Zygote in place of Flux's default AD, Tracker, just by changing `Tracker.gradient` to `Zygote.gradient`. The API is otherwise the same.
+It's easy to use PartialP in place of Flux's default AD, Tracker, just by changing `Tracker.gradient` to `PartialP.gradient`. The API is otherwise the same.
 
 ```julia
-julia> using Flux, Zygote
+julia> using Flux, PartialP
 
 julia> m = Chain(Dense(10, 5, relu), Dense(5, 2))
 Chain(Dense(10, 5, NNlib.relu), Dense(5, 2))

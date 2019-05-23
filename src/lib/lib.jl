@@ -140,7 +140,7 @@ end
   end
 end
 
-# ... so we have Zygote call this version where we can.
+# ... so we have PartialP call this version where we can.
 literal_getproperty(x, ::Val{f}) where f = getproperty(x, f)
 
 @adjoint function literal_getproperty(x, ::Val{f}) where f

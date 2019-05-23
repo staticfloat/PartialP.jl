@@ -1,6 +1,6 @@
 # Debugging in Time and Space
 
-Because Zygote generates Julia code for the backwards pass, many of Julia's
+Because PartialP generates Julia code for the backwards pass, many of Julia's
 normal profiling and performance debugging tools work well on it out of the box.
 
 ## Performance Profiling
@@ -27,7 +27,7 @@ The trace inside the adjoint can be used to distinguish time taken by the forwar
 
 Reverse-mode AD typically uses memory proportional to the number of operations
 in the program, so long-running programs can also suffer memory usage issues.
-Zygote includes a space profiler to help debug these issues. Like the time
+PartialP includes a space profiler to help debug these issues. Like the time
 profiler, it shows a canopy chart, but this time hovering over it displays the
 number of bytes stored by each line of the program.
 
@@ -38,13 +38,13 @@ Note that this currently only works inside Juno.
 ## Reflection
 
 Julia's code and type inference reflection tools can also be useful, though
-Zygote's use of closures can make the output noisy. To see the code Julia runs
+PartialP's use of closures can make the output noisy. To see the code Julia runs
 you should use the low-level `_forward` method and the pullback it returns.
 This will directly show either the derived adjoint code or the code for a custom
 adjoint, if there is one.
 
 ```julia
-julia> using Zygote: Context, _forward
+julia> using PartialP: Context, _forward
 
 julia> add(a, b) = a+b
 
@@ -64,7 +64,7 @@ julia> @code_typed back(1)
 CodeInfo(
 1 ─ %1 = (Base.mul_int)(Δ, 1)::Int64
 │   %2 = (Base.mul_int)(Δ, 1)::Int64
-│   %3 = (Zygote.tuple)(nothing, %1, %2)::PartialTuple(Tuple{Nothing,Int64,Int64}, Any[Const(nothing, false), Int64, Int64])
+│   %3 = (PartialP.tuple)(nothing, %1, %2)::PartialTuple(Tuple{Nothing,Int64,Int64}, Any[Const(nothing, false), Int64, Int64])
 └──      return %3
 ) => Tuple{Nothing,Int64,Int64}
 ```

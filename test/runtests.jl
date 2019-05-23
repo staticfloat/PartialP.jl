@@ -1,13 +1,13 @@
-using Zygote, Test
-using Zygote: gradient
+using PartialP, Test
+using PartialP: gradient
 
-if Zygote.usetyped
-  @info "Testing Zygote in type-hacks mode."
+if PartialP.usetyped
+  @info "Testing PartialP in type-hacks mode."
 else
-  @info "Testing Zygote in normal mode."
+  @info "Testing PartialP in normal mode."
 end
 
-@testset "Zygote" begin
+@testset "PartialP" begin
 
 @testset "Features" begin
   include("features.jl")

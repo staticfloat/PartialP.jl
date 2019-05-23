@@ -1,5 +1,5 @@
-using Zygote, NNlib, Test, Random, LinearAlgebra, Statistics
-using Zygote: gradient
+using PartialP, NNlib, Test, Random, LinearAlgebra, Statistics
+using PartialP: gradient
 using NNlib: conv, ∇conv_data, depthwiseconv
 
 function ngradient(f, xs::AbstractArray...)
@@ -156,7 +156,7 @@ end
   @testset "Cholesky" begin
 
     # Check that the forwards pass computes the correct thing.
-    @test Zygote.forward(X->cholesky(X * X' + I) \ Y, X)[1] == cholesky(X * X' + I) \ Y
+    @test PartialP.forward(X->cholesky(X * X' + I) \ Y, X)[1] == cholesky(X * X' + I) \ Y
     @test gradtest(X->cholesky(X * X' + I) \ Y, X)
     @test gradtest(Y->cholesky(X * X' + I) \ Y, Y)
     @test gradtest(X->cholesky(X * X' + I) \ y, X)
@@ -168,7 +168,7 @@ end
   rng, P = MersenneTwister(123456), 7
   A = randn(rng, P, P)
   @test gradtest(Symmetric, A)
-  y, back = Zygote.forward(Symmetric, A)
+  y, back = PartialP.forward(Symmetric, A)
 
   @testset "back(::Diagonal)" begin
     D̄ = Diagonal(randn(rng, P))
@@ -187,7 +187,7 @@ end
   rng, P = MersenneTwister(123456), 10
   d = randn(rng, P)
   @test gradtest(Diagonal, d)
-  y, back = Zygote.forward(Diagonal, d)
+  y, back = PartialP.forward(Diagonal, d)
   D̄ = randn(rng, P, P)
   @test back(D̄) == back(Diagonal(D̄))
   @test back(D̄) == back((diag=diag(D̄),))
@@ -205,8 +205,8 @@ end
   A = randn(rng, N, N)
   @test gradtest(A->logdet(cholesky(A' * A + 1e-6I)), A)
   @testset "cholesky - scalar" begin
-    y, back = Zygote.forward(cholesky, 5.0 * ones(1, 1))
-    y′, back′ = Zygote.forward(cholesky, 5.0)
+    y, back = PartialP.forward(cholesky, 5.0 * ones(1, 1))
+    y′, back′ = PartialP.forward(cholesky, 5.0)
     C̄ = randn(rng, 1, 1)
     @test back′((factors=C̄,))[1] isa Real
     @test back′((factors=C̄,))[1] ≈ back((factors=C̄,))[1][1, 1]
@@ -214,8 +214,8 @@ end
   @testset "cholesky - Diagonal" begin
     D = Diagonal(exp.(randn(3)))
     Dmat = Matrix(D)
-    y, back = Zygote.forward(cholesky, Dmat)
-    y′, back′ = Zygote.forward(cholesky, D)
+    y, back = PartialP.forward(cholesky, Dmat)
+    y′, back′ = PartialP.forward(cholesky, D)
     C̄ = (factors=randn(rng, 3, 3),)
     @test back′(C̄)[1] isa Diagonal
     @test diag(back′(C̄)[1]) ≈ diag(back(C̄)[1])
@@ -242,7 +242,7 @@ end
 
 using Distances
 
-Zygote.refresh()
+PartialP.refresh()
 
 @testset "distances" begin
   rng, P, Q, D = MersenneTwister(123456), 10, 9, 8
@@ -280,7 +280,7 @@ end
 
 function cat_test(f, A::Union{AbstractVector, AbstractMatrix}...)
   @test gradtest(f, A...)
-  Z, back = Zygote.forward(f, A...)
+  Z, back = PartialP.forward(f, A...)
   Ā = back(randn(size(Z)))
   @test all(map((a, ā)->ā isa typeof(a), A, Ā))
 end
@@ -332,15 +332,15 @@ end
 end
 
 @testset "one(s) and zero(s)" begin
-  @test Zygote.gradient(x->sum(ones(size(x))), randn(5))[1] isa Nothing
-  @test Zygote.gradient(x->sum(one(x)), randn(3, 3))[1] isa Nothing
-  @test Zygote.gradient(x->sum(zeros(size(x))), randn(7))[1] isa Nothing
-  @test Zygote.gradient(x->sum(zero(x)), randn(3))[1] isa Nothing
+  @test PartialP.gradient(x->sum(ones(size(x))), randn(5))[1] isa Nothing
+  @test PartialP.gradient(x->sum(one(x)), randn(3, 3))[1] isa Nothing
+  @test PartialP.gradient(x->sum(zeros(size(x))), randn(7))[1] isa Nothing
+  @test PartialP.gradient(x->sum(zero(x)), randn(3))[1] isa Nothing
 end
 
 import StatsFuns
 
-Zygote.refresh()
+PartialP.refresh()
 
 @testset "xlogx" begin
   @test gradcheck(x->2.5 * StatsFuns.xlogx(x[1]), [1.0])
@@ -406,17 +406,17 @@ end
 end
 
 @testset "* sizing" begin
-  @test size(Zygote.gradient((x, y)->sum(x * y), randn(1, 1), randn(1, 10))[1]) == (1, 1)
-  @test size(Zygote.gradient((x, y)->sum(x * y), randn(1, 1), randn(1, 10))[2]) == (1, 10)
+  @test size(PartialP.gradient((x, y)->sum(x * y), randn(1, 1), randn(1, 10))[1]) == (1, 1)
+  @test size(PartialP.gradient((x, y)->sum(x * y), randn(1, 1), randn(1, 10))[2]) == (1, 10)
 end
 
 @testset "broadcast" begin
-  if !Zygote.usetyped
+  if !PartialP.usetyped
     @test gradient(x -> sum(sin.(x)), Diagonal(randn(3)))[1][2] == 1
   end
 end
 
-using Zygote: Buffer
+using PartialP: Buffer
 
 @testset "Buffer" begin
   @test gradient([1, 2, 3]) do x

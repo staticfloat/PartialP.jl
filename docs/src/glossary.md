@@ -1,6 +1,6 @@
 # Glossary
 
-Differentiation is a minefield of conflicting and overlapping terminology, partly because the ideas have been re-discovered in many different fields (e.g. calculus and differential geometry, the traditional AD community, deep learning, finance, etc.) Many of these terms are not well-defined and others may disagree on the details. Nevertheless, we aim to at least say how *we* use these terms, which will be helpful when reading over Zygote issues, discussions and source code.
+Differentiation is a minefield of conflicting and overlapping terminology, partly because the ideas have been re-discovered in many different fields (e.g. calculus and differential geometry, the traditional AD community, deep learning, finance, etc.) Many of these terms are not well-defined and others may disagree on the details. Nevertheless, we aim to at least say how *we* use these terms, which will be helpful when reading over PartialP issues, discussions and source code.
 
 The list is certainly not complete; if you see new terms you'd like defined, or would like to add one yourself, please do open an issue or PR.
 
@@ -10,19 +10,19 @@ The list is certainly not complete; if you see new terms you'd like defined, or 
 
 **Derivative**: Given a scalar function ``y = f(x)``, the derivative is ``\frac{\partial y}{\partial x}``. "Partial" is taken for granted in AD; there's no interesting distinction between partial and total derivatives for our purposes. It's all in the eye of the beholder.
 
-**Differential**: Given a function ``f(x)``, the linearisation ``\partial f`` such that ``f(x + \epsilon) \approx f(x) + \partial f \epsilon``. This is a generalisation of the derivative since it applies to, for example, vector-to-vector functions (``\partial f`` is a Jacobian) and holomorphic complex functions (``\partial f`` is the first Wirtinger derivative). This is *not*, in general, what Zygote calculates, though differentials can usually be derived from gradients.
+**Differential**: Given a function ``f(x)``, the linearisation ``\partial f`` such that ``f(x + \epsilon) \approx f(x) + \partial f \epsilon``. This is a generalisation of the derivative since it applies to, for example, vector-to-vector functions (``\partial f`` is a Jacobian) and holomorphic complex functions (``\partial f`` is the first Wirtinger derivative). This is *not*, in general, what PartialP calculates, though differentials can usually be derived from gradients.
 
 **IR**: Intermediate Representation. Essentially source code, but usually lower level – e.g. control flow constructs like loops and branches have all been replaced by `goto`s. The idea is that it's harder for humans to read/write but easier to manipulate programmatically. Worth looking at SSA form as a paradigmatic example.
 
-**Gradient**: See *sensitivity*. There is no technical difference in Zygote's view, though "gradient" sometimes distinguishes the sensitivity we actually want from e.g. the internal ones that Zygote produces as it backpropagates.
+**Gradient**: See *sensitivity*. There is no technical difference in PartialP's view, though "gradient" sometimes distinguishes the sensitivity we actually want from e.g. the internal ones that PartialP produces as it backpropagates.
 
 **Graph**: ML people tend to think of models as "computation graphs", but this is no more true than any program is a graph. In fact, pretty much anything is a graph if you squint hard enough. This also refers to the data structure that e.g. TensorFlow and PyTorch build to represent your model, but see *trace* for that.
 
-**Pullback**: Given ``y = f(x)`` the function ``\bar x = back(̄\bar y)``. In other words, the function `back` in `y, back = Zygote.forward(f, x)`.
+**Pullback**: Given ``y = f(x)`` the function ``\bar x = back(̄\bar y)``. In other words, the function `back` in `y, back = PartialP.forward(f, x)`.
 
 **Sensitivity**: Used to refer to the gradient ``\bar x = \frac{\partial l}{\partial x}`` with some scalar loss ``l``. In other words, you have a value ``x`` (which need not be scalar) at some point in your program, and ``\bar x`` tells you how you should change that value to decrease the loss. In the AD world, sometimes used to refer to adjoint rules.
 
-**Source to Source Differentiation**: Or Source Code Transformation (SCT). As opposed to *tracing* programs to simplify them, an alternative is to operate directly on a language's source code or IR, generating new source code for pullbacks. This describes Zygote, Swift for TensorFlow, Tapenade and a few other old ADs that worked on C source files. Zygote and Swift are unusual in that they work on in-memory IR rather than text source.
+**Source to Source Differentiation**: Or Source Code Transformation (SCT). As opposed to *tracing* programs to simplify them, an alternative is to operate directly on a language's source code or IR, generating new source code for pullbacks. This describes PartialP, Swift for TensorFlow, Tapenade and a few other old ADs that worked on C source files. PartialP and Swift are unusual in that they work on in-memory IR rather than text source.
 
 To an extent, tracing ADs can be viewed as source transform of a Wengert list / trace. The key difference is that the trace is a lossy representation of the original semantics, which causes problems with e.g. control flow. Systems which can preserve some of those semantics (e.g. autograph) begin to blur the line here, though they are still not nearly as expressive as language IRs.
 

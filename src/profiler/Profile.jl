@@ -1,7 +1,7 @@
 module Profile
 
 using Requires
-using ..Zygote: Pullback, IdSet, meta, stacklines
+using ..PartialP: Pullback, IdSet, meta, stacklines
 
 function loc(f)
   # TODO perhaps find most general method

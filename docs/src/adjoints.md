@@ -1,13 +1,13 @@
 # Custom Adjoints
 
-The `@adjoint` macro is an important part of Zygote's interface; customising your backwards pass is not only possible but widely used and encouraged. While there are specific utilities available for common things like gradient clipping, understanding adjoints will give you the most flexibility. We first give a bit more background on what these pullback things are.
+The `@adjoint` macro is an important part of PartialP's interface; customising your backwards pass is not only possible but widely used and encouraged. While there are specific utilities available for common things like gradient clipping, understanding adjoints will give you the most flexibility. We first give a bit more background on what these pullback things are.
 
 ## Pullbacks
 
 `gradient` is really just syntactic sugar around the more fundamental function `forward`.
 
 ```julia
-julia> y, back = Zygote.forward(sin, 0.5);
+julia> y, back = PartialP.forward(sin, 0.5);
 
 julia> y
 0.479425538604203
@@ -45,7 +45,7 @@ More generally
 
 ```julia
 julia> function mygradient(f, x...)
-         _, back = Zygote.forward(f, x...)
+         _, back = PartialP.forward(f, x...)
          back(1)
        end
 mygradient (generic function with 1 method)
@@ -58,16 +58,16 @@ The rest of this section contains more technical detail. It can be skipped if yo
 
 If ``x`` and ``y`` are vectors, ``\frac{\partial y}{\partial x}`` becomes a Jacobian. Importantly, because we are implementing reverse mode we actually left-multiply the Jacobian, i.e. `v'J`, rather than the more usual `J*v`. Transposing `v` to a row vector and back `(v'J)'` is equivalent to `J'v` so our gradient rules actually implement the *adjoint* of the Jacobian. This is relevant even for scalar code: the adjoint for `y = sin(x)` is `x̄ = sin(x)'*ȳ`; the conjugation is usually moot but gives the correct behaviour for complex code. "Pullbacks" are therefore sometimes called "vector-Jacobian products" (VJPs), and we refer to the reverse mode rules themselves as "adjoints".
 
-Zygote has many adjoints for non-mathematical operations such as for indexing and data structures. Though these can still be seen as linear functions of vectors, it's not particularly enlightening to implement them with an actual matrix multiply. In these cases it's easiest to think of the adjoint as a kind of inverse. For example, the gradient of a function that takes a tuple to a struct (e.g. `y = Complex(a, b)`) will generally take a struct to a tuple (`(ȳ.re, ȳ.im)`). The gradient of a `getindex` `y = x[i...]` is a `setindex!` `x̄[i...] = ȳ`, etc.
+PartialP has many adjoints for non-mathematical operations such as for indexing and data structures. Though these can still be seen as linear functions of vectors, it's not particularly enlightening to implement them with an actual matrix multiply. In these cases it's easiest to think of the adjoint as a kind of inverse. For example, the gradient of a function that takes a tuple to a struct (e.g. `y = Complex(a, b)`) will generally take a struct to a tuple (`(ȳ.re, ȳ.im)`). The gradient of a `getindex` `y = x[i...]` is a `setindex!` `x̄[i...] = ȳ`, etc.
 
 ## Custom Adjoints
 
-We can extend Zygote to a new function with the `@adjoint` function.
+We can extend PartialP to a new function with the `@adjoint` function.
 
 ```julia
 julia> mul(a, b) = a*b
 
-julia> using Zygote: @adjoint
+julia> using PartialP: @adjoint
 
 julia> @adjoint mul(a, b) = mul(a, b), c̄ -> (c̄*b, c̄*a)
 
@@ -102,7 +102,7 @@ julia> gradient(a -> dist(a), Point(1, 2))[1]
 (x = 0.5547001962252291, y = 0.8320502943378437)
 ```
 
-Fundamentally, this happens because of Zygote's default adjoint for `getfield`.
+Fundamentally, this happens because of PartialP's default adjoint for `getfield`.
 
 ```julia
 julia> gradient(a -> a.x, Point(1, 2))
@@ -116,7 +116,7 @@ julia> @adjoint width(p::Point) = p.x, x̄ -> (Point(x̄, 0),)
 
 julia> @adjoint height(p::Point) = p.y, ȳ -> (Point(0, ȳ),)
 
-julia> Zygote.refresh() # currently needed when defining new adjoints
+julia> PartialP.refresh() # currently needed when defining new adjoints
 
 julia> gradient(a -> height(a), Point(1, 2))
 (Point(0.0, 1.0),)
@@ -136,7 +136,7 @@ julia> gradient(x -> dist(Point(x, 1)), 1)
 
 ## Advanced Adjoints
 
-We usually use custom adjoints to add gradients that Zygote can't derive itself (for example, because they `ccall` to BLAS). But there are some more advanced and fun things we can to with `@adjoint`.
+We usually use custom adjoints to add gradients that PartialP can't derive itself (for example, because they `ccall` to BLAS). But there are some more advanced and fun things we can to with `@adjoint`.
 
 ### Gradient Hooks
 
@@ -162,7 +162,7 @@ julia> gradient((a, b) -> hook(ā -> @show(ā), a)*b, 2, 3)
 (3, 2)
 ```
 
-Zygote provides both `hook` and `@showgrad` so you don't have to write these yourself.
+PartialP provides both `hook` and `@showgrad` so you don't have to write these yourself.
 
 ### Checkpointing
 
@@ -172,7 +172,7 @@ A more advanced example is checkpointing, in which we save memory by re-computin
 julia> checkpoint(f, x) = f(x)
 checkpoint (generic function with 1 method)
 
-julia> @adjoint checkpoint(f, x) = f(x), ȳ -> Zygote._forward(f, x)[2](ȳ)
+julia> @adjoint checkpoint(f, x) = f(x), ȳ -> PartialP._forward(f, x)[2](ȳ)
 
 julia> gradient(x -> checkpoint(sin, x), 1)
 (0.5403023058681398,)

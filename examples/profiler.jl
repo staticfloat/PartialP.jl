@@ -4,8 +4,8 @@ import Pkg
 Pkg.activate(@__DIR__)
 Pkg.instantiate()
 
-@info("Loading Zygote...")
-using Zygote
+@info("Loading PartialP...")
+using PartialP
 
 function f(x)
   for i = 1:5
@@ -24,7 +24,7 @@ end
 
 gradient(loop, 2, 3)
 
-Zygote.@profile loop(2, 3)
+PartialP.@profile loop(2, 3)
 
 function logsumexp(x::Array{Float64,1})
   A = maximum(x);
@@ -35,4 +35,4 @@ end
 
 gradient(logsumexp, rand(100))
 
-Zygote.@profile logsumexp(rand(100))
+PartialP.@profile logsumexp(rand(100))

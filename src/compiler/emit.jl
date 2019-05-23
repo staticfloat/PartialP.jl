@@ -48,7 +48,7 @@ function forward_stacks!(adj, F)
       T = exprtype(pr, Variable(α))
       stk = pushfirst!(pr, xstack(T))
       push!(recs, stk)
-      push!(b, xcall(Zygote, :_push!, stk, Variable(α)))
+      push!(b, xcall(PartialP, :_push!, stk, Variable(α)))
     end
     push!(stks, (b.id, alpha(α)))
   end
@@ -82,7 +82,7 @@ function reverse_stacks!(adj, stks)
         val = insertafter!(ir, t, xcall(:getindex, t, i))
       else
         stk = push!(entry, xcall(:getindex, t, i))
-        stk = push!(entry, xcall(Zygote, :Stack, stk))
+        stk = push!(entry, xcall(PartialP, :Stack, stk))
         val = pushfirst!(b, xcall(:pop!, stk))
       end
       repl[α] = val

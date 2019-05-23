@@ -1,9 +1,9 @@
-module Zygote
+module PartialP
 
 using LinearAlgebra, Statistics
 using LinearAlgebra: copytri!
 
-# This flag enables Zygote to grab extra type inference information during
+# This flag enables PartialP to grab extra type inference information during
 # compiles. When control flow is present, this can give gradient code a
 # performance boost.
 

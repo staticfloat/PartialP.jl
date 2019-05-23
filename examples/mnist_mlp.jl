@@ -4,11 +4,11 @@ import Pkg
 Pkg.activate(@__DIR__)
 Pkg.instantiate()
 
-@info("Loading Zygote and Flux...")
-using Zygote, Flux, Random, Statistics
+@info("Loading PartialP and Flux...")
+using PartialP, Flux, Random, Statistics
 using Flux.Data.MNIST
 
-# We're going to showcase how to use Zygote with Flux; we'll create a simple
+# We're going to showcase how to use PartialP with Flux; we'll create a simple
 # Multi-Layer Perceptron network to do digit classification upon the MNIST
 # dataset.  We start with some setup that is ripped straight from the Flux
 # model zoo:
@@ -89,7 +89,7 @@ for epoch_idx in 1:num_epochs
     batch_idxs = 1:batch_size:(size(X,2) - batch_size)
     for bidx in batch_idxs
         # Calculate gradients upon the model for this batch
-        grads = Zygote.gradient(model) do model
+        grads = PartialP.gradient(model) do model
             return loss(model, X[:, bidx:bidx+batch_size],
                                Y[:, bidx:bidx+batch_size])
         end

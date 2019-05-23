@@ -1,5 +1,5 @@
-using Zygote, Test
-using Zygote: forward, @adjoint
+using PartialP, Test
+using PartialP: forward, @adjoint
 
 macro test_inferred(ex)
   :(let res = nothing
@@ -19,7 +19,7 @@ end
 bad(x) = x
 @adjoint bad(x) = x, Δ -> error("bad")
 
-Zygote.usetyped && Zygote.refresh()
+PartialP.usetyped && PartialP.refresh()
 
 function badly(x)
   x = x + 1
@@ -37,7 +37,7 @@ bt = try back(1) catch e stacktrace(catch_backtrace()) end
 
 # Type inference checks
 
-Zygote.refresh()
+PartialP.refresh()
 
 y, back = @test_inferred forward(*, 2, 3)
 @test_inferred(back(1))
@@ -78,6 +78,6 @@ y, back = @test_inferred forward(getx, (x=1,y=2.0))
 # @test_inferred forward(Complex, 1, 2)
 
 # Checks that use control flow
-if Zygote.usetyped
+if PartialP.usetyped
   include("typed.jl")
 end

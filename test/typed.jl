@@ -1,5 +1,5 @@
-using Zygote, Test
-using Zygote: gradient, forward
+using PartialP, Test
+using PartialP: gradient, forward
 
 dpow(n, p) = something(gradient(pow, n, p)[1], zero(n))
 
